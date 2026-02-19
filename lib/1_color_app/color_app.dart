@@ -20,36 +20,22 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _currentIndex = 0;
-  int redTapCount = 0;
-  int blueTapCount = 0;
-
-  void _incrementRedTapCount() {
-    setState(() {
-      redTapCount++;
-    });
-  }
-
-  void _incrementBlueTapCount() {
-    setState(() {
-      blueTapCount++;
-    });
-  }
+  final ColorService count = ColorService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-          _currentIndex == 0
+      body: ListenableBuilder(
+        listenable: count,
+        builder: (context, _) {
+          return _currentIndex == 0
               ? ColorTapsScreen(
-                redTapCount: redTapCount,
-                blueTapCount: blueTapCount,
-                onRedTap: _incrementRedTapCount,
-                onBlueTap: _incrementBlueTapCount,
-              )
-              : StatisticsScreen(
-                redTapCount: redTapCount,
-                blueTapCount: blueTapCount,
-              ),
+                  tapCount: count.tapCount,
+                  onTap: count._incrementTap,
+                )
+              : StatisticsScreen(tapCount: count.tapCount);
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -72,18 +58,25 @@ class _HomeState extends State<Home> {
   }
 }
 
+class ColorService extends ChangeNotifier {
+  final Map<CardType, int> _tapCount = {CardType.red: 0, CardType.blue: 0};
+
+  Map<CardType, int> get tapCount => _tapCount;
+
+  void _incrementTap(CardType type) {
+    _tapCount[type] = _tapCount[type]! + 1;
+    notifyListeners();
+  }
+}
+
 class ColorTapsScreen extends StatelessWidget {
-  final int redTapCount;
-  final int blueTapCount;
-  final VoidCallback onRedTap;
-  final VoidCallback onBlueTap;
+  final Map<CardType, int> tapCount;
+  final void Function(CardType) onTap;
 
   const ColorTapsScreen({
     super.key,
-    required this.redTapCount,
-    required this.blueTapCount,
-    required this.onRedTap,
-    required this.onBlueTap,
+    required this.tapCount,
+    required this.onTap,
   });
   @override
   Widget build(BuildContext context) {
@@ -91,11 +84,15 @@ class ColorTapsScreen extends StatelessWidget {
       appBar: AppBar(title: Text('Color Taps')),
       body: Column(
         children: [
-          ColorTap(type: CardType.red, tapCount: redTapCount, onTap: onRedTap),
+          ColorTap(
+            type: CardType.red,
+            tapCount: tapCount[CardType.red]!,
+            onTap: () => onTap(CardType.red),
+          ),
           ColorTap(
             type: CardType.blue,
-            tapCount: blueTapCount,
-            onTap: onBlueTap,
+            tapCount: tapCount[CardType.blue]!,
+            onTap: () => onTap(CardType.blue),
           ),
         ],
       ),
@@ -141,14 +138,9 @@ class ColorTap extends StatelessWidget {
 }
 
 class StatisticsScreen extends StatelessWidget {
-  final int redTapCount;
-  final int blueTapCount;
+  final Map<CardType, int> tapCount;
 
-  const StatisticsScreen({
-    super.key,
-    required this.redTapCount,
-    required this.blueTapCount,
-  });
+  const StatisticsScreen({super.key, required this.tapCount});
 
   @override
   Widget build(BuildContext context) {
@@ -158,8 +150,14 @@ class StatisticsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Red Taps: $redTapCount', style: TextStyle(fontSize: 24)),
-            Text('Blue Taps: $blueTapCount', style: TextStyle(fontSize: 24)),
+            Text(
+              'Red Taps: ${tapCount[CardType.red]}',
+              style: TextStyle(fontSize: 24),
+            ),
+            Text(
+              'Blue Taps: ${tapCount[CardType.blue]}',
+              style: TextStyle(fontSize: 24),
+            ),
           ],
         ),
       ),
