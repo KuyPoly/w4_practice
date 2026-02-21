@@ -12,9 +12,11 @@ class DownloadsScreen extends StatelessWidget {
     Ressource(name: "image3.png", size: 12000),
   ];
 
+  final ChangeTheme themeNotifier;
+
   final List<DownloadController> controllers = [];
 
-  DownloadsScreen({super.key}) {
+  DownloadsScreen({super.key, required this.themeNotifier}) {
     // Create a controllers for each ressource
     for (Ressource ressource in ressources) {
       controllers.add(DownloadController(ressource));
@@ -23,6 +25,7 @@ class DownloadsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       color: currentThemeColor.backgroundColor,
       child: Column(
